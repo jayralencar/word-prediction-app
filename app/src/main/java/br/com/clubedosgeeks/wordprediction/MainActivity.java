@@ -23,7 +23,9 @@ import android.app.Activity;
 import android.content.Context;
 import  org.tensorflow.lite.TensorFlowLite;
 
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -40,8 +42,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     EditText editText;
     List<String> tokens = new ArrayList<String>();
     ArrayList<String> nextWords=new ArrayList<String>();
-    private static final int SEQUENCE_LEN = 5;
-    private static final int MAX_RESULTS = 9;
+    private static final int SEQUENCE_LEN = 3;
+    private static final int MAX_RESULTS = 10;
     private ArrayAdapter<String> arrayAdapter;
     List<String> sentence = new ArrayList<String>();
 
@@ -62,6 +64,24 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         });
 
         this.editText = (EditText)findViewById(R.id.editText);
+
+        this.editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                sentence = Arrays.asList(editText.getText().toString().split("\\W+"));
+//                getNextWords();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 //        this.editText.setFocusable(false);
 //        this.editText.setEnabled(false);
 //        this.editText.setCursorVisible(false);
@@ -161,9 +181,12 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         int recognitionsSize = Math.min(pq.size(), MAX_RESULTS);
         for (int i = 0; i < recognitionsSize; ++i) {
 //            recognitions.add(pq.poll());
-            this.nextWords.add(pq.poll().getWord());
+            List<String> new_sentence = new ArrayList<String>(this.sentence);
+            new_sentence.add(pq.poll().getWord());
+            this.nextWords.add(TextUtils.join(" ", new_sentence));
+            Log.d("OPCAO", TextUtils.join(" ", new_sentence));
             this.arrayAdapter.notifyDataSetChanged();
-//            Log.d("JAYR", pq.poll().getWord());
+
 
         }
     }
@@ -185,8 +208,12 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     }
 
     private void addWord(int position) {
-        this.sentence.add(this.nextWords.get(position));
-        this.editText.setText(TextUtils.join(" ", this.sentence));
+//        this.sentence.add(this.nextWords.get(position));
+        Log.d("asdas", this.nextWords.get(position)+" ");
+        this.editText.setText(this.nextWords.get(position)+" ");
+        this.editText.setSelection(this.editText.getText().length());
+        this.sentence = Arrays.asList(this.nextWords.get(position).split("\\W+"));
+
         this.getNextWords();
     }
 
